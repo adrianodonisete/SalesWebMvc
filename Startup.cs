@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using SalesWebMvc22.Models;
+using SalesWebMvc22.Data;
 
 namespace SalesWebMvc22
 {
@@ -33,14 +36,23 @@ namespace SalesWebMvc22
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+
+            services.AddDbContext<SalesWebMvc22Context>(options =>
+                    options.UseMySql(Configuration.GetConnectionString("SalesWebMvc22Context"), builder =>
+                        builder.MigrationsAssembly("SalesWebMvc22")));
+
+            services.AddScoped<SeedingService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, SeedingService seedingService)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                seedingService.Seed();
             }
             else
             {

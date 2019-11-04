@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using SalesWebMvc22.Services.Exceptions;
 
 namespace SalesWebMvc22.Services
 {
@@ -30,7 +32,9 @@ namespace SalesWebMvc22.Services
 
         public Seller FindById(int Id)
         {
-            return _context.Seller.FirstOrDefault(ojb => ojb.Id == Id);
+            return _context.Seller
+                    .Include(obj => obj.Department)
+                    .FirstOrDefault(ojb => ojb.Id == Id);
         }
 
         public void Remove(int Id)
@@ -40,5 +44,21 @@ namespace SalesWebMvc22.Services
             _context.SaveChanges();
         }
 
+        public void Update(Seller obj)
+        {
+            if (!_context.Seller.Any(x => x.Id == obj.Id))
+            {
+                throw new NotFoundException("Id not found");
+            }
+            try
+            {
+                _context.Update(obj);
+                _context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException e)
+            {
+                throw new DbConcurrencyException(e.Message);
+            }
+        }
     }
 }
